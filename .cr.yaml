@@ -1,0 +1,7 @@
+# Chart releaser configuration
+# See: https://github.com/helm/chart-releaser
+
+owner: Revolution1
+git-repo: helm-charts
+charts-dir: charts
+charts-repo-url: https://revolution1.github.io/helm-charts

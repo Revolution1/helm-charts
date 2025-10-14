@@ -1,0 +1,10 @@
+# Helm
+*.tgz
+.cr-release-packages/
+.cr-index/
+
+# General
+.DS_Store
+*.swp
+*.swo
+*~
