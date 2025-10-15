@@ -26,6 +26,22 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: Enable OCI registry support
+        run: |
+          helm version
+          helm registry login registry-1.docker.io || true
+          echo "OCI registry support enabled"
+
+      - name: Build chart dependencies
+        run: |
+          set -euo pipefail
+          for dir in $(find charts -mindepth 1 -maxdepth 1 -type d); do
+            if [ -f "$dir/Chart.yaml" ]; then
+              echo "Building dependencies for $dir..."
+              helm dependency build "$dir"
+            fi
+          done
+
       - name: Add dependency chart repos
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
