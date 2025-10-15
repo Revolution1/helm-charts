@@ -119,6 +119,8 @@ When changes are merged to `main`:
 4. Charts are published to GitHub Pages
 5. The Helm repository index is updated
 
+For initial repository setup, see the [Setup Guide](SETUP.md) ([中文版](SETUP_zh.md)).
+
 ## Chart Guidelines
 
 ### Required Files

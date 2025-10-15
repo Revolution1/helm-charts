@@ -104,6 +104,12 @@ When charts are pushed to the `main` branch:
 - Charts are published to GitHub Pages
 - The Helm repository index is updated
 
+### Repository Setup
+
+For initial repository setup including creating and protecting the gh-pages branch, see:
+- [Setup Guide](SETUP.md) (English)
+- [设置指南](SETUP_zh.md) (中文)
+
 ## Chart Guidelines
 
 ### Chart.yaml Requirements
