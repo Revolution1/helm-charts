@@ -102,29 +102,29 @@ config:
   nodeEnv: production
   port: 3000
   host: "0.0.0.0"
-  
+
   # Security configuration (required)
   jwtSecret: ""
   encryptionKey: ""
   adminSessionTimeout: 86400000
   apiKeyPrefix: "cr_"
-  
+
   # Admin credentials (optional)
   adminUsername: ""
   adminPassword: ""
-  
+
   # Logging configuration
   logLevel: "info"
   logMaxSize: "10m"
   logMaxFiles: 5
-  
+
   # System configuration
   cleanupInterval: 3600000
   rateLimitCleanupInterval: 5
   tokenUsageRetention: 2592000000
   healthCheckInterval: 60000
   timezoneOffset: 8
-  
+
   # Usage limits
   defaultTokenLimit: 1000000
 
@@ -171,7 +171,7 @@ storage:
   logs:
     # Log storage mode: fluentbit (default, stdout), forward (fluentbit with forwarding), pvc (file storage)
     mode: fluentbit
-    
+
     # Fluent Bit configuration
     fluentbit:
       enabled: true
@@ -189,13 +189,13 @@ storage:
       output:
         # Output type: stdout (default), forward, elasticsearch, http, loki, s3, kafka, etc.
         type: stdout
-        
+
         # Raw output configuration - any valid Fluent Bit output configuration
         # This will be directly rendered into the [OUTPUT] section
         config: {}
-        
+
         # Example configurations (uncomment and modify as needed):
-        
+
         # Forward to Fluentd/Fluent Bit
         # type: forward
         # config:
@@ -203,7 +203,7 @@ storage:
         #   Port: 24224
         #   Shared_Key: "your-shared-key"
         #   Self_Hostname: "claude-relay"
-        
+
         # Elasticsearch output
         # type: es
         # config:
@@ -218,7 +218,7 @@ storage:
         #   HTTP_Passwd: "password"
         #   tls: "On"
         #   tls.verify: "Off"
-        
+
         # HTTP output (generic webhook)
         # type: http
         # config:
@@ -229,7 +229,7 @@ storage:
         #   tls: "On"
         #   tls.verify: "On"
         #   Header: "Authorization Bearer your-token"
-        
+
         # Grafana Loki output
         # type: loki
         # config:
@@ -240,7 +240,7 @@ storage:
         #   BatchWait: 1
         #   BatchSize: 1001024
         #   LineFormat: "json"
-        
+
         # Amazon S3 output
         # type: s3
         # config:
@@ -251,7 +251,7 @@ storage:
         #   use_put_object: "On"
         #   s3_key_format: "/logs/year=%Y/month=%m/day=%d/hour=%H/%Y%m%d%H%M%S_$UUID.gz"
         #   s3_key_format_tag_delimiters: "."
-        
+
         # Apache Kafka output
         # type: kafka
         # config:
@@ -261,7 +261,7 @@ storage:
         #   Retry_Limit: 1
         #   rdkafka.client.id: "claude-relay"
         #   rdkafka.request.required.acks: 1
-    
+
     # Log persistence (for pvc mode)
     persistence:
       enabled: false
