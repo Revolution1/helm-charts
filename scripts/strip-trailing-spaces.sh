@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Normalize chart files under charts/
 # - Strip trailing whitespace from each line
-# - Ensure EXACTLY one newline at end of file (remove trailing blank lines, then append one) 
+# - Ensure EXACTLY one newline at end of file (remove trailing blank lines, then append one)
 # - Targets: *.yaml, *.yml, *.tpl, *.txt, Chart.yaml, values.yaml, .helmignore
 # - Skips:   *.md (Markdown may intentionally use trailing spaces for hard line breaks)
 
@@ -15,14 +15,14 @@ echo "[strip-trailing-spaces] scanning: ${TARGET_DIR}"
 
 # Build find expression
 find_expr=(
-  -type f \( 
-    -name "*.yaml" -o 
-    -name "*.yml" -o 
-    -name "*.tpl" -o 
-    -name "*.txt" -o 
-    -name "Chart.yaml" -o 
-    -name "values.yaml" -o 
-    -name ".helmignore" 
+  -type f \(
+    -name "*.yaml" -o
+    -name "*.yml" -o
+    -name "*.tpl" -o
+    -name "*.txt" -o
+    -name "Chart.yaml" -o
+    -name "values.yaml" -o
+    -name ".helmignore"
   \) ! -name "*.md"
 )
 
