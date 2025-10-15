@@ -116,20 +116,6 @@ spec:
             - name: REDIS_ENABLE_TLS
               value: {{ include "claude-relay.redisTLS" . | quote }}
             
-            # Claude API configuration
-            - name: CLAUDE_API_URL
-              value: {{ .Values.config.claudeApiUrl | quote }}
-            - name: CLAUDE_API_VERSION
-              value: {{ .Values.config.claudeApiVersion | quote }}
-            - name: CLAUDE_BETA_HEADER
-              value: {{ .Values.config.claudeBetaHeader | quote }}
-            
-            # Proxy configuration
-            - name: DEFAULT_PROXY_TIMEOUT
-              value: {{ .Values.config.defaultProxyTimeout | quote }}
-            - name: MAX_PROXY_RETRIES
-              value: {{ .Values.config.maxProxyRetries | quote }}
-            
             # Usage limits
             - name: DEFAULT_TOKEN_LIMIT
               value: "{{ printf "%.0f" .Values.config.defaultTokenLimit }}"
@@ -153,22 +139,6 @@ spec:
               value: "{{ printf "%.0f" .Values.config.healthCheckInterval }}"
             - name: TIMEZONE_OFFSET
               value: {{ .Values.config.timezoneOffset | quote }}
-            
-            # Web interface configuration
-            - name: WEB_TITLE
-              value: {{ .Values.config.webTitle | quote }}
-            - name: WEB_DESCRIPTION
-              value: {{ .Values.config.webDescription | quote }}
-            - name: WEB_LOGO_URL
-              value: {{ .Values.config.webLogoUrl | quote }}
-            
-            # Development configuration
-            - name: DEBUG
-              value: {{ .Values.config.debug | quote }}
-            - name: ENABLE_CORS
-              value: {{ .Values.config.enableCors | quote }}
-            - name: TRUST_PROXY
-              value: {{ .Values.config.trustProxy | quote }}
             
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}

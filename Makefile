@@ -1,4 +1,4 @@
-.PHONY: help lint package clean
+.PHONY: help lint package clean deps docs template format-charts
 
 CHART_DIRS := $(shell find charts -mindepth 1 -maxdepth 1 -type d)
 HELM := helm
@@ -57,3 +57,7 @@ template: ## Run helm template on all charts
 		echo "Templating $$dir..."; \
 		$(HELM) template test $$dir > /dev/null; \
 	done
+
+format-charts: ## Remove trailing spaces and fix EOF newlines in charts
+	@echo "Formatting chart files (strip trailing spaces, ensure EOF newline)..."
+	@bash scripts/strip-trailing-spaces.sh

@@ -19,10 +19,6 @@ data:
   REDIS_PORT: {{ include "claude-relay.redisPort" . | quote }}
   REDIS_DB: {{ include "claude-relay.redisDatabase" . | quote }}
   REDIS_ENABLE_TLS: {{ include "claude-relay.redisTLS" . | quote }}
-
-  # Proxy configuration
-  DEFAULT_PROXY_TIMEOUT: {{ .Values.config.defaultProxyTimeout | quote }}
-  MAX_PROXY_RETRIES: {{ .Values.config.maxProxyRetries | quote }}
   
   # Usage limits
   DEFAULT_TOKEN_LIMIT: {{ .Values.config.defaultTokenLimit | quote }}
@@ -39,5 +35,4 @@ data:
   TIMEZONE_OFFSET: {{ .Values.config.timezoneOffset | quote }}
   
   # Web interface configuration (using application defaults)
-  
   # Development configuration (using application defaults)
