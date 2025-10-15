@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "example-app.fullname" . }}
+  name: {{ include "claude-relay.fullname" . }}
   labels:
-    {{- include "example-app.labels" . | nindent 4 }}
+    {{- include "claude-relay.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "example-app.fullname" . }}
+    name: {{ include "claude-relay.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

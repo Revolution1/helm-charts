@@ -1,9 +1,0 @@
-apiVersion: v2
-name: example-app
-description: An example Helm chart demonstrating the repository structure
-type: application
-version: 1.0.0
-appVersion: "1.0.0"
-maintainers:
-  - name: Revolution1
-home: https://github.com/Revolution1/helm-charts
