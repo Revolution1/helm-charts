@@ -2,6 +2,10 @@
 
 Helm charts of various apps
 
+## Charts
+
+- `claude-relay`: Claude Relay 服务的 Helm Chart，路径 `charts/claude-relay`，详见 [charts/claude-relay/README.md](charts/claude-relay/README.md)。
+
 ## Usage
 
 ### Adding the Helm Repository
