@@ -21,6 +21,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Git
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Install tools
         run: |
@@ -35,16 +43,19 @@ jobs:
         run: |
           set -euo pipefail
           echo "Fetching latest release from GitHub API..."
-          latest=$(curl -sSfL "https://api.github.com/repos/${REPO}/releases/latest" | jq -r '.tag_name // empty')
+          # Use curl without -f to avoid immediate failure on 4xx/5xx and allow fallback
+          latest_json=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" || true)
+          latest=$(echo "$latest_json" | jq -r '.tag_name // empty' || echo "")
           if [ -z "$latest" ] || [ "$latest" = "null" ]; then
             echo "GitHub API returned empty. Fallback to releases HTML page..."
-            html=$(curl -sSfL "https://github.com/${REPO}/releases")
+            html=$(curl -sSL "https://github.com/${REPO}/releases" || true)
             latest=$(echo "$html" | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)
           fi
           if [ -z "$latest" ]; then
             echo "Failed to determine latest release tag" >&2
             exit 1
           fi
+          latest=$(echo "$latest" | tr -d '\r\n')
           echo "Latest release tag: $latest"
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
 
@@ -119,16 +130,19 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: |
-            chore(claude-relay): bump chart version to ${{ steps.bump.outputs.new_ver }} and appVersion to ${{ steps.get_release.outputs.latest }}
-          title: Update claude-relay chart to ${{ steps.get_release.outputs.latest }}
+          commit-message: "chore(claude-relay): bump chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}, appVersion ${{ steps.read_chart.outputs.current_app }} -> ${{ steps.get_release.outputs.latest }}"
+          title: "chore(claude-relay): update chart to ${{ steps.get_release.outputs.latest }}"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          base: main
           body: |
             Automated update:
-            - appVersion: ${{ steps.read_chart.outputs.current_app }} → ${{ steps.get_release.outputs.latest }}
-            - version patch: ${{ steps.read_chart.outputs.current_ver }} → ${{ steps.bump.outputs.new_ver }}
+            - appVersion: ${{ steps.read_chart.outputs.current_app }} -> ${{ steps.get_release.outputs.latest }}
+            - version patch: ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}
 
             Source: https://github.com/Wei-Shaw/claude-relay-service/releases
           branch: chore/claude-relay-${{ steps.get_release.outputs.latest }}
+          branch-suffix: timestamp
           signoff: true
           delete-branch: true
           labels: |
