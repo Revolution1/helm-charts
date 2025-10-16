@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Setup Git
         run: |
@@ -125,20 +125,20 @@ jobs:
         run: |
           git --no-pager diff -- charts/claude-relay/Chart.yaml || true
 
-      - name: Commit and push changes to main
+      - name: Create Pull Request
         if: steps.decision.outputs.update_needed == 'true'
-        env:
-          CURRENT_VER: ${{ steps.read_chart.outputs.current_ver }}
-          NEW_VER: ${{ steps.bump.outputs.new_ver }}
-          LATEST: ${{ steps.get_release.outputs.latest }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add charts/claude-relay/Chart.yaml
-          if git diff --cached --quiet; then
-            echo "No changes staged; skipping commit and push"
-            exit 0
-          fi
-          git commit -m "chore(claude-relay): bump chart ${CURRENT_VER} -> ${NEW_VER}, appVersion ${LATEST}"
-          git push origin HEAD:main
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(claude-relay): bump chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}, appVersion ${{ steps.get_release.outputs.latest }}"
+          title: "chore(claude-relay): bump chart to ${{ steps.bump.outputs.new_ver }}"
+          body: "Automated update: appVersion ${{ steps.get_release.outputs.latest }}, chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          add-paths: |
+            charts/claude-relay/Chart.yaml
+          base: "main"
+          branch: "ci/claude-relay/app-${{ steps.get_release.outputs.latest }}"
+          branch-suffix: "timestamp"
+          signoff: true
+          draft: false
