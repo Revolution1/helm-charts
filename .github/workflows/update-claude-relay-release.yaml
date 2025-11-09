@@ -139,6 +139,5 @@ jobs:
             charts/claude-relay/Chart.yaml
           base: "main"
           branch: "ci/claude-relay/app-${{ steps.get_release.outputs.latest }}"
-          branch-suffix: "timestamp"
           signoff: true
           draft: false
