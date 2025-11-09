@@ -127,7 +127,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.decision.outputs.update_needed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(claude-relay): bump chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}, appVersion ${{ steps.get_release.outputs.latest }}"
