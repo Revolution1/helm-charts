@@ -1,39 +1,42 @@
 # Claude Relay Service Helm Chart
 
-Helm chart to deploy Claude Relay Service on Kubernetes. It documents only the configurations actually supported by the chart templates and current `values.yaml`.
+Deploy [Claude Relay Service](https://github.com/Wei-Shaw/claude-relay-service) on Kubernetes with this Helm chart. This chart provides production-ready deployment configurations including authentication, monitoring, logging, and flexible storage options.
 
-## Features
+> **Note**: This documentation covers only the configurations actually supported by the current chart templates and `values.yaml`.
 
-- Multi-account Claude API relay (application feature) with secure auth
-- Secure authentication using JWT and optional admin credentials
-- Built-in monitoring via Prometheus metrics and optional ServiceMonitor
-- Redis integration: internal subchart or external Redis with TLS/password
-- Ingress support with TLS; blocks `/metrics` and `/prometheus` via rules
-- Horizontal Pod Autoscaling (HPA) by CPU and optional memory
-- Flexible logging pipeline using Fluent Bit sidecar
-  - Output to stdout, forward, Elasticsearch, Loki, HTTP, Kafka, S3 (configurable)
+## Key Features
+
+- **Multi-account Claude API relay** with secure JWT-based authentication
+- **Secure authentication** using JWT tokens and optional admin credentials
+- **Built-in monitoring** via Prometheus metrics with optional ServiceMonitor for Prometheus Operator
+- **Redis integration** - Use internal Redis subchart or connect to external Redis (TLS/password support)
+- **Ingress support** with TLS termination and automatic blocking of `/metrics` and `/prometheus` endpoints
+- **Horizontal Pod Autoscaling (HPA)** based on CPU and optional memory metrics
+- **Flexible logging pipeline** using Fluent Bit sidecar
+  - Multiple output types: stdout, forward, Elasticsearch, Loki, HTTP, Kafka, S3
   - Ephemeral logs via `emptyDir` or persistent logs via PVC
-- Optional external data PVC mount for `/app/external-data`
+- **Optional external data PVC** for mounting at `/app/external-data`
 
 ## Prerequisites
 
 - Kubernetes 1.19+
 - Helm 3.2.0+
-- PV provisioner only needed when `storage.logs.mode=pvc` or `storage.data.external.enabled=true`
+- PersistentVolume provisioner (only required when `storage.logs.mode=pvc` or `storage.data.external.enabled=true`)
 
 ## Installation
 
-### Install from Helm repository
+### Basic Installation from Helm Repository
 
 ```bash
-# Add repository and update index
+# Add the Helm repository and update
 helm repo add revolution1 https://revolution1.github.io/helm-charts
 helm repo update
 
-# Optional: list available charts
+# List available charts (optional)
 helm search repo revolution1
 
-# Basic install (secrets are generated if omitted)
+# Install with minimal configuration
+# Note: JWT secret and encryption key are auto-generated if not provided
 helm install my-claude-relay revolution1/claude-relay \
   --set config.jwtSecret="$(openssl rand -base64 32)" \
   --set config.encryptionKey="$(openssl rand -base64 32)" \
@@ -41,7 +44,7 @@ helm install my-claude-relay revolution1/claude-relay \
   --set config.adminPassword="secure-password"
 ```
 
-### External Redis
+### Using External Redis
 
 ```bash
 helm install my-claude-relay revolution1/claude-relay \
@@ -53,7 +56,7 @@ helm install my-claude-relay revolution1/claude-relay \
   --set externalRedis.tls=true
 ```
 
-### Enable Ingress
+### Enabling Ingress
 
 ```bash
 helm install my-claude-relay revolution1/claude-relay \
@@ -66,7 +69,7 @@ helm install my-claude-relay revolution1/claude-relay \
   --set ingress.tls[0].hosts[0]=claude-relay.example.com
 ```
 
-### Enable ServiceMonitor
+### Enabling ServiceMonitor (Prometheus Operator)
 
 ```bash
 helm install my-claude-relay revolution1/claude-relay \
@@ -77,9 +80,9 @@ helm install my-claude-relay revolution1/claude-relay \
   --set serviceMonitor.scrapeTimeout=10s
 ```
 
-## Configuration
+## Configuration Reference
 
-### Application config (required secrets)
+### Application Configuration (Core Settings)
 
 ```yaml
 config:
@@ -116,9 +119,9 @@ config:
   defaultTokenLimit: 1000000
 ```
 
-### Redis
+### Redis Configuration
 
-Internal Redis (default):
+#### Internal Redis (Default)
 
 ```yaml
 redis:
@@ -138,7 +141,7 @@ redis:
       memory: 128Mi
 ```
 
-External Redis:
+#### External Redis
 
 ```yaml
 redis:
@@ -152,7 +155,7 @@ externalRedis:
   tls: false
 ```
 
-### Ingress
+### Ingress Configuration
 
 ```yaml
 ingress:
@@ -170,9 +173,9 @@ ingress:
         - claude-relay.example.com
 ```
 
-Ingress rules also block `/metrics` and `/prometheus` by routing to a non-existent backend.
+> **Note**: Ingress rules automatically block access to `/metrics` and `/prometheus` endpoints by routing to a non-existent backend for security.
 
-### Monitoring (ServiceMonitor)
+### Monitoring Configuration (ServiceMonitor)
 
 ```yaml
 serviceMonitor:
@@ -189,7 +192,7 @@ serviceMonitor:
   namespaceSelector: {}
 ```
 
-### Logging and storage
+### Storage and Logging Configuration
 
 ```yaml
 storage:
@@ -231,26 +234,35 @@ storage:
       size: 10Gi
 ```
 
-- `fluentbit`/`forward`: adds a Fluent Bit sidecar and ConfigMap; logs read from `/app/logs/*.log`.
-- `pvc`: creates `PersistentVolumeClaim` for logs and mounts at `/app/logs`.
-- `emptyDir`: ephemeral logs in the pod filesystem.
-- External data PVC (optional) mounts at `/app/external-data` when enabled.
+**Logging Modes:**
 
-## Values (selected)
+- **`fluentbit`/`forward`**: Adds a Fluent Bit sidecar with ConfigMap, reads logs from `/app/logs/*.log`
+- **`pvc`**: Creates a PersistentVolumeClaim for logs, mounts at `/app/logs`
+- **`emptyDir`**: Uses ephemeral storage in pod filesystem for logs
+
+**External Data PVC** (optional): When enabled, mounts at `/app/external-data`
+
+## Values Reference
+
+The following table lists the most commonly used configuration values:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| **Deployment & Image** | | | |
 | `replicaCount` | int | `1` | Number of replicas (ignored if HPA enabled) |
 | `image.repository` | string | `ghcr.io/wei-shaw/claude-relay-service` | Container image repository |
 | `image.tag` | string | `""` | Image tag (defaults to chart `appVersion`) |
 | `image.pullPolicy` | string | `IfNotPresent` | Image pull policy |
+| **Service & Ingress** | | | |
 | `service.type` | string | `ClusterIP` | Service type |
 | `service.port` | int | `80` | Service port (proxies to container `config.port`) |
 | `ingress.enabled` | bool | `false` | Enable Ingress |
+| **Autoscaling** | | | |
 | `autoscaling.enabled` | bool | `false` | Enable HPA |
 | `autoscaling.minReplicas` | int | `1` | Min replicas |
 | `autoscaling.maxReplicas` | int | `100` | Max replicas |
 | `autoscaling.targetCPUUtilizationPercentage` | int | `80` | Target CPU utilization |
+| **Redis** | | | |
 | `redis.enabled` | bool | `true` | Use internal Redis subchart |
 | `redis.auth.enabled` | bool | `false` | Enable Redis auth |
 | `redis.persistence.size` | string | `1Gi` | Internal Redis PVC size |
@@ -259,6 +271,7 @@ storage:
 | `externalRedis.password` | string | `""` | External Redis password |
 | `externalRedis.database` | int | `0` | External Redis DB index |
 | `externalRedis.tls` | bool | `false` | Enable TLS for external Redis |
+| **Application Configuration** | | | |
 | `config.jwtSecret` | string | `""` | JWT secret (optional; auto-generated if empty) |
 | `config.encryptionKey` | string | `""` | Encryption key (optional; auto-generated if empty) |
 | `config.adminUsername` | string | `""` | Admin username |
@@ -274,20 +287,24 @@ storage:
 | `config.healthCheckInterval` | int(ms) | `60000` | Health check interval |
 | `config.timezoneOffset` | int | `8` | Timezone offset (hours) |
 | `config.defaultTokenLimit` | int | `1000000` | Default token limit |
+| **Monitoring** | | | |
 | `serviceMonitor.enabled` | bool | `false` | Enable ServiceMonitor |
 | `serviceMonitor.path` | string | `/prometheus` | Metrics path |
 | `serviceMonitor.interval` | string | `30s` | Scrape interval |
 | `serviceMonitor.scrapeTimeout` | string | `10s` | Scrape timeout |
-| `storage.logs.mode` | string | `fluentbit` | Logging mode |
+| **Storage & Logging** | | | |
+| `storage.logs.mode` | string | `fluentbit` | Logging mode (fluentbit/forward/pvc/emptyDir) |
 | `storage.logs.fluentbit.output.type` | string | `stdout` | Fluent Bit output type |
 | `storage.logs.fluentbit.output.config` | map | `{}` | Output configuration (raw key-value) |
-| `storage.logs.persistence.size` | string | `10Gi` | Log PVC size (mode `pvc`) |
+| `storage.logs.persistence.size` | string | `10Gi` | Log PVC size (when mode=pvc) |
 | `storage.data.type` | string | `emptyDir` | Data storage type |
 | `storage.data.external.enabled` | bool | `false` | Enable external data PVC |
 
 ## Examples
 
-### Production example (External Redis, Ingress, HPA, ServiceMonitor)
+### Production Deployment
+
+Production setup with external Redis, Ingress, HPA, and ServiceMonitor:
 
 ```bash
 helm install claude-relay revolution1/claude-relay \
@@ -307,7 +324,7 @@ helm install claude-relay revolution1/claude-relay \
   --set serviceMonitor.enabled=true
 ```
 
-### Fluent Bit output example (Loki)
+### Fluent Bit Output to Loki
 
 ```yaml
 storage:
@@ -323,7 +340,7 @@ storage:
           Labels: "job=claude-relay,environment=production"
 ```
 
-### Log PVC mode
+### Persistent Log Storage (PVC Mode)
 
 ```yaml
 storage:
@@ -334,7 +351,7 @@ storage:
       size: 50Gi
 ```
 
-### External data PVC
+### External Data PVC
 
 ```yaml
 storage:
@@ -346,13 +363,19 @@ storage:
       accessMode: ReadWriteOnce
 ```
 
-## Upgrading
+## Management
+
+### Upgrading the Chart
 
 ```bash
+# Upgrade to the latest version
 helm upgrade claude-relay revolution1/claude-relay
+
+# Upgrade with custom values
+helm upgrade claude-relay revolution1/claude-relay -f values.yaml
 ```
 
-## Uninstalling
+### Uninstalling the Chart
 
 ```bash
 helm uninstall claude-relay
@@ -360,24 +383,37 @@ helm uninstall claude-relay
 
 ## Troubleshooting
 
-1. Pod fails to start with auth errors
-   - Ensure `config.jwtSecret` and `config.encryptionKey` are set (or verify generated values in Secret)
-   - Check Redis connectivity and credentials
-2. Redis connection issues
-   - Verify `redis.enabled` vs `externalRedis` configuration
-   - Check Redis logs or external Redis reachability
-3. Ingress not working
-   - Confirm Ingress controller and annotations
-   - Note: access to `/metrics`/`/prometheus` is intentionally blocked
-4. Logging not collected
-   - Check `storage.logs.mode` and Fluent Bit ConfigMap
-   - For PVC mode, ensure the PVC is bound
+### Common Issues
+
+#### 1. Pod fails to start with auth errors
+
+- Ensure `config.jwtSecret` and `config.encryptionKey` are set (or verify auto-generated values in the Secret)
+- Check Redis connectivity and credentials
+
+#### 2. Redis connection issues
+
+- Verify `redis.enabled` vs `externalRedis` configuration matches your setup
+- Check Redis logs or external Redis network reachability
+- Ensure firewall rules allow connections
+
+#### 3. Ingress not working
+
+- Confirm Ingress controller is installed and running
+- Verify Ingress class and annotations are correct
+- Note: Access to `/metrics` and `/prometheus` endpoints is intentionally blocked for security
+
+#### 4. Logging not collected
+
+- Check `storage.logs.mode` configuration and Fluent Bit ConfigMap
+- For PVC mode, ensure the PVC is bound and has sufficient capacity
+- Review Fluent Bit sidecar logs for errors
+
+## Resources
+
+- **Source Code**: [Claude Relay Service on GitHub](https://github.com/Wei-Shaw/claude-relay-service)
+- **Issues & Bug Reports**: [Submit an Issue](https://github.com/Wei-Shaw/claude-relay-service/issues)
+- **Chart Repository**: [Revolution1 Helm Charts](https://github.com/Revolution1/helm-charts)
 
 ## License
 
-MIT License. See [LICENSE](../../LICENSE).
-
-## Links
-
-- Source: https://github.com/Wei-Shaw/claude-relay-service
-- Issues: https://github.com/Wei-Shaw/claude-relay-service/issues
+This chart is licensed under the MIT License. See [LICENSE](../../LICENSE) for details.
