@@ -2,6 +2,33 @@ apiVersion: v1
 entries:
   claude-relay:
   - apiVersion: v2
+    appVersion: v1.1.208
+    created: "2025-11-25T07:55:53.931228763Z"
+    dependencies:
+    - condition: redis.enabled
+      name: redis
+      repository: oci://registry-1.docker.io/cloudpirates
+      version: 0.6.x
+    description: A Helm chart for Claude Relay Service - Independent versioning
+    digest: 99123514d0e95fd75ab16d9641bedbfec7c233751565a493e15591f05b3e4034
+    home: https://github.com/Wei-Shaw/claude-relay-service
+    keywords:
+    - claude
+    - api
+    - relay
+    - ai
+    - anthropic
+    maintainers:
+    - email: revol.cai@gmail.com
+      name: Revolution1
+    name: claude-relay
+    sources:
+    - https://github.com/Wei-Shaw/claude-relay-service
+    type: application
+    urls:
+    - https://github.com/Revolution1/helm-charts/releases/download/claude-relay-0.1.10/claude-relay-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
     appVersion: v1.1.206
     created: "2025-11-25T05:17:49.569480066Z"
     dependencies:
@@ -271,4 +298,4 @@ entries:
     urls:
     - https://github.com/Revolution1/helm-charts/releases/download/claude-relay-0.1.0/claude-relay-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-25T05:17:49.56953018Z"
+generated: "2025-11-25T07:55:53.931278306Z"
