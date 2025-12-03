@@ -2,8 +2,8 @@ apiVersion: v2
 name: claude-relay
 description: A Helm chart for Claude Relay Service - Independent versioning
 type: application
-version: 0.1.13
-appVersion: v1.1.217
+version: 0.1.14
+appVersion: v1.1.218
 
 dependencies:
   - name: redis
