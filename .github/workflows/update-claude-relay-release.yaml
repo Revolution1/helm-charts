@@ -144,30 +144,22 @@ jobs:
           current_ver="${{ steps.read_chart.outputs.current_ver }}"
           new_ver="${{ steps.bump.outputs.new_ver }}"
           
-          # Create PR body with release notes
-          cat > /tmp/pr_body.txt << 'EOF'
+          # Create PR body with release notes using direct variable expansion
+          cat > /tmp/pr_body.txt << EOF
           ## Upgrade Summary
           
-          - **Chart version**: $current_ver → $new_ver
-          - **App version**: $current_app → $latest
-          - **Release**: [$latest]($release_url)
+          - **Chart version**: ${current_ver} → ${new_ver}
+          - **App version**: ${current_app} → ${latest}
+          - **Release**: [${latest}](${release_url})
           
           ## Release Notes
           
-          $release_body
+          ${release_body}
           
           ---
           
           *This is an automated update from the upstream [claude-relay-service](https://github.com/Wei-Shaw/claude-relay-service) repository.*
           EOF
-          
-          # Substitute variables
-          sed -i "s|\$current_ver|${current_ver}|g" /tmp/pr_body.txt
-          sed -i "s|\$new_ver|${new_ver}|g" /tmp/pr_body.txt
-          sed -i "s|\$current_app|${current_app}|g" /tmp/pr_body.txt
-          sed -i "s|\$latest|${latest}|g" /tmp/pr_body.txt
-          sed -i "s|\$release_url|${release_url}|g" /tmp/pr_body.txt
-          sed -i "s|\$release_body|${release_body}|g" /tmp/pr_body.txt
 
       - name: Create Pull Request
         if: steps.decision.outputs.update_needed == 'true'
