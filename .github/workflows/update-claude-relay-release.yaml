@@ -131,13 +131,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(claude-relay): bump chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}, appVersion ${{ steps.get_release.outputs.latest }}"
-          title: "chore(claude-relay): bump chart to ${{ steps.bump.outputs.new_ver }}"
+          title: "chore(claude-relay): bump chart to ${{ steps.bump.outputs.new_ver }} (appVersion ${{ steps.get_release.outputs.latest }})"
           body: "Automated update: appVersion ${{ steps.get_release.outputs.latest }}, chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}"
           author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           add-paths: |
             charts/claude-relay/Chart.yaml
           base: "main"
-          branch: "ci/claude-relay/app-${{ steps.get_release.outputs.latest }}"
+          branch: "ci/claude-relay/auto-update"
           signoff: true
           draft: false
