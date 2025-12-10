@@ -46,10 +46,14 @@ jobs:
           # Use curl without -f to avoid immediate failure on 4xx/5xx and allow fallback
           latest_json=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" || true)
           latest=$(echo "$latest_json" | jq -r '.tag_name // empty' || echo "")
+          release_body=$(echo "$latest_json" | jq -r '.body // empty' || echo "")
+          release_url=$(echo "$latest_json" | jq -r '.html_url // empty' || echo "")
           if [ -z "$latest" ] || [ "$latest" = "null" ]; then
             echo "GitHub API returned empty. Fallback to releases HTML page..."
             html=$(curl -sSL "https://github.com/${REPO}/releases" || true)
             latest=$(echo "$html" | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)
+            release_url="https://github.com/${REPO}/releases/tag/${latest}"
+            release_body=""
           fi
           if [ -z "$latest" ]; then
             echo "Failed to determine latest release tag" >&2
@@ -58,6 +62,9 @@ jobs:
           latest=$(echo "$latest" | tr -d '\r\n')
           echo "Latest release tag: $latest"
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          # Save release body to a file to handle multiline content
+          echo "$release_body" > /tmp/release_body.txt
+          echo "release_url=$release_url" >> "$GITHUB_OUTPUT"
 
       - name: Read current Chart.yaml
         id: read_chart
@@ -125,6 +132,43 @@ jobs:
         run: |
           git --no-pager diff -- charts/claude-relay/Chart.yaml || true
 
+      - name: Prepare PR body
+        if: steps.decision.outputs.update_needed == 'true'
+        id: pr_body
+        run: |
+          set -euo pipefail
+          release_body=$(cat /tmp/release_body.txt || echo "")
+          release_url="${{ steps.get_release.outputs.release_url }}"
+          latest="${{ steps.get_release.outputs.latest }}"
+          current_app="${{ steps.read_chart.outputs.current_app }}"
+          current_ver="${{ steps.read_chart.outputs.current_ver }}"
+          new_ver="${{ steps.bump.outputs.new_ver }}"
+          
+          # Create PR body with release notes
+          cat > /tmp/pr_body.txt << 'EOF'
+          ## Upgrade Summary
+          
+          - **Chart version**: $current_ver → $new_ver
+          - **App version**: $current_app → $latest
+          - **Release**: [$latest]($release_url)
+          
+          ## Release Notes
+          
+          $release_body
+          
+          ---
+          
+          *This is an automated update from the upstream [claude-relay-service](https://github.com/Wei-Shaw/claude-relay-service) repository.*
+          EOF
+          
+          # Substitute variables
+          sed -i "s|\$current_ver|${current_ver}|g" /tmp/pr_body.txt
+          sed -i "s|\$new_ver|${new_ver}|g" /tmp/pr_body.txt
+          sed -i "s|\$current_app|${current_app}|g" /tmp/pr_body.txt
+          sed -i "s|\$latest|${latest}|g" /tmp/pr_body.txt
+          sed -i "s|\$release_url|${release_url}|g" /tmp/pr_body.txt
+          sed -i "s|\$release_body|${release_body}|g" /tmp/pr_body.txt
+
       - name: Create Pull Request
         if: steps.decision.outputs.update_needed == 'true'
         uses: peter-evans/create-pull-request@v7
@@ -132,7 +176,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(claude-relay): bump chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}, appVersion ${{ steps.get_release.outputs.latest }}"
           title: "chore(claude-relay): bump chart to ${{ steps.bump.outputs.new_ver }} (appVersion ${{ steps.get_release.outputs.latest }})"
-          body: "Automated update: appVersion ${{ steps.get_release.outputs.latest }}, chart ${{ steps.read_chart.outputs.current_ver }} -> ${{ steps.bump.outputs.new_ver }}"
+          body-path: /tmp/pr_body.txt
           author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           add-paths: |
